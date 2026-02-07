@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Une surprise pour toi...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Nunito:wght@400;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+      body { font-family: "Nunito", sans-serif; overflow: hidden; background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%); height: 100vh; width: 100vw; touch-action: manipulation; }
+      .script-font { font-family: "Dancing Script", cursive; }
+      .floating-heart { position: absolute; color: rgba(255, 105, 180, 0.4); animation: float 15s infinite linear; z-index: 0; pointer-events: none; user-select: none; }
+      @keyframes float { 0% { transform: translateY(100vh) rotate(0deg) scale(0.8); opacity: 0.8; } 100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; } }
+      .fade-in { animation: fadeIn 1s ease-in forwards; } .fade-out { animation: fadeOut 0.8s ease-out forwards; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+      .heartbeat { animation: beat 1.3s infinite ease-in-out; } @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+      .typing-cursor::after { content: '|'; animation: blink 1s step-start infinite; } @keyframes blink { 50% { opacity: 0; } }
+      .card-style { background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(8px); border-radius: 1.5rem; box-shadow: 0 10px 25px -5px rgba(255, 182, 193, 0.4); border: 2px solid #ffc1cc; }
+    </style>
+  </head>
+  <body class="flex flex-col items-center justify-center relative select-none">
+    <audio id="pop-sound" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.m4a"></audio>
+    <audio id="yay-sound" src="https://assets.mixkit.co/active_storage/sfx/1993/1993-preview.m4a"></audio>
+    <div id="hearts-container" class="absolute inset-0 overflow-hidden"></div>
+    <div id="intro-card" class="z-10 text-center max-w-lg p-8 card-style transition-all duration-700 w-[90%]">
+      <h1 class="script-font text-4xl text-pink-500 mb-8" id="intro-text">Coucou toi... ❤️</h1>
+      <button onclick="nextStep()" class="bg-pink-400 hover:bg-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-md transform transition hover:scale-105 focus:outline-none ring-4 ring-pink-100">Clique ici</button>
+    </div>
+    <div id="question-card" class="hidden z-10 text-center max-w-3xl p-6 md:p-12 relative card-style items-center flex flex-col w-[90%] md:w-auto">
+      <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExN2ZkYjRhYjI2ZWViMTIyMmExNGEzODQ5ZTJjYzRkYjY1YzcxOWQ2YiZlcD12MV9pbnRlcm5hbF9naWZzX2dpZklkJmN0PWc/c76IJLufpNwSULPk77/giphy.gif" alt="Cute bears" class="w-32 h-32 md:w-48 md:h-48 object-cover rounded-2xl mb-4 shadow-sm mx-auto">
+      <div class="text-5xl text-red-400 mb-2 heartbeat drop-shadow-sm">💖</div>
+      <h1 id="typewriter-text" class="script-font text-3xl md:text-6xl text-pink-600 mb-4 leading-tight min-h-[60px] typing-cursor"></h1>
+      <p class="text-gray-600 mb-8 text-base md:text-lg font-medium fade-in" style="animation-delay: 2s">(Promis, il y aura des chocolats... et des bisous ! 🍫)</p>
+      <div class="flex justify-center gap-4 items-center w-full relative h-20 fade-in" style="animation-delay: 2.5s">
+        <button id="yes-btn" onclick="acceptProposal()" class="bg-green-400 hover:bg-green-500 text-white text-lg md:text-2xl font-bold py-3 px-6 md:py-4 md:px-12 rounded-full shadow-lg transform transition-all duration-300 hover:scale-110 ring-4 ring-green-100 z-20 whitespace-nowrap">OUI !</button>
+        <button id="no-btn" ontouchstart="dodgeButton()" onmouseover="dodgeButton()" onclick="dodgeButton()" class="bg-gray-300 text-gray-700 text-base md:text-lg font-bold py-3 px-5 rounded-full shadow-md transition-all duration-200 absolute right-2 w-auto min-w-[80px] whitespace-nowrap z-50 select-none">Non</button>
+      </div>
+    </div>
+    <div id="success-card" class="hidden z-10 text-center max-w-2xl p-8 card-style fade-in border-pink-300 w-[90%] md:w-auto">
+      <h1 class="text-6xl md:text-7xl mb-4">🥰🎉</h1>
+      <h2 class="script-font text-4xl md:text-6xl text-pink-600 mb-6">Elle a dit OUI !</h2>
+      <p class="text-lg md:text-2xl text-gray-700 font-medium script-font mb-8">Je suis le plus heureux ! <br> Je t'aime fort ! ❤️</p>
+      <a id="whatsapp-link" href="#" target="_blank" class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full shadow-lg transform transition hover:scale-105"><span>💌 Envoyer ma réponse</span></a>
+    </div>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetPhone = urlParams.get('phone'); 
+      let targetName = urlParams.get('name');
+      if (!targetName) targetName = "toi";
+      document.getElementById("intro-text").innerText = `Coucou ${targetName}... ❤️`;
+      const whatsappLink = document.getElementById("whatsapp-link");
+      if (targetPhone) { whatsappLink.href = `https://wa.me/${targetPhone}?text=${encodeURIComponent("OUI ! Je veux être ta Valentine ! 💖🥰")}`; } 
+      else { whatsappLink.style.display = 'none'; }
+      let step = 0;
+      const messages = ["J'ai quelque chose à te dire...", "Tu me rends tellement heureux...", "Chaque moment avec toi est spécial...", "Alors voilà la question..."];
+      const noTexts = ["Tu es sûre ?", "Vraiment ?", "Réessaie !", "Même pas en rêve !", "Allez...", "Mauvais bouton !", "Essaie l'autre 👉", "Jamais !", "T'es têtue hein ?"];
+      const introCard = document.getElementById("intro-card"), introText = document.getElementById("intro-text"), questionCard = document.getElementById("question-card"), successCard = document.getElementById("success-card"), noBtn = document.getElementById("no-btn"), yesBtn = document.getElementById("yes-btn"), popSound = document.getElementById("pop-sound"), yaySound = document.getElementById("yay-sound"), typewriterText = document.getElementById("typewriter-text");
+      let yesScale = 1;
+      function playSound(s) { s.currentTime=0; s.volume=0.4; s.play().catch(e=>console.log(e)); }
+      function nextStep() { if(step===0) playSound(popSound); step++; introText.classList.add("fade-out"); setTimeout(() => { if (step < messages.length) { introText.innerText = messages[step]; introText.classList.remove("fade-out"); introText.classList.add("fade-in"); } else { introCard.classList.add("hidden"); questionCard.classList.remove("hidden"); questionCard.classList.add("fade-in"); noBtn.style.position = "absolute"; noBtn.style.right = "10%"; typeWriter("Veux-tu être ma Valentine ?", 0); } }, 600); }
+      function typeWriter(text, i) { if (i < text.length) { typewriterText.innerHTML += text.charAt(i); setTimeout(() => typeWriter(text, i + 1), 100); } else { typewriterText.classList.remove("typing-cursor"); } }
+      function dodgeButton() { playSound(popSound); noBtn.innerText = noTexts[Math.floor(Math.random()*noTexts.length)]; yesScale += 0.15; yesBtn.style.transform = `scale(${yesScale})`; const maxX = window.innerWidth - noBtn.offsetWidth - 20; const maxY = window.innerHeight - noBtn.offsetHeight - 20; noBtn.style.position = "fixed"; noBtn.style.left = Math.max(20, Math.random() * maxX) + "px"; noBtn.style.top = Math.max(20, Math.random() * maxY) + "px"; }
+      function acceptProposal() { playSound(yaySound); questionCard.classList.add("hidden"); noBtn.classList.add("hidden"); successCard.classList.remove("hidden"); launchConfetti(); setInterval(launchConfetti, 400); }
+      function launchConfetti() { confetti({ particleCount: 100, spread: 120, origin: { y: 0.7 }, colors: ["#ff69b4", "#ff1493", "#ffd700", "#ffffff"], shapes: ["heart"] }); }
+      function createFloatingHeart() { const h = document.createElement("div"); h.classList.add("floating-heart"); const s = ["❤️", "💖", "💕", "🌸", "🧚🏿‍♀️"]; h.innerHTML = s[Math.floor(Math.random()*s.length)]; h.style.left = Math.random()*100+"vw"; h.style.fontSize=Math.random()*25+15+"px"; h.style.animationDuration=Math.random()*10+15+"s"; document.getElementById("hearts-container").appendChild(h); setTimeout(()=>h.remove(), 25000); }
+      setInterval(createFloatingHeart, 700);
+    </script>
+  </body>
+</html>
