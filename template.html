@@ -19,7 +19,6 @@
       }
       .script-font { font-family: "Dancing Script", cursive; }
       
-      /* Cœurs en arrière-plan */
       .floating-heart { 
           position: absolute; 
           color: rgba(255, 105, 180, 0.4); 
@@ -33,17 +32,14 @@
           100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); opacity: 0; } 
       }
 
-      /* Transitions Texte */
       .fade-in { animation: fadeIn 1s ease-in forwards; } 
       .fade-out { animation: fadeOut 0.6s ease-out forwards; }
       @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
       
-      /* Animation Coeur */
       .heartbeat { animation: beat 1.3s infinite ease-in-out; } 
       @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
       
-      /* Machine à écrire */
       .typing-cursor::after { content: '|'; animation: blink 1s step-start infinite; } 
       @keyframes blink { 50% { opacity: 0; } }
 
@@ -55,9 +51,9 @@
           border: 2px solid #ffc1cc; 
       }
       
-      /* CORRECTION: Transition fluide et lente pour le bouton NON */
+      /* Le bouton glisse doucement (0.4s) au lieu de disparaître */
       #no-btn {
-        transition: top 0.5s ease-in-out, left 0.5s ease-in-out, transform 0.2s;
+        transition: top 0.4s ease-out, left 0.4s ease-out;
         position: absolute; 
         z-index: 50;
       }
@@ -95,7 +91,7 @@
           OUI !
         </button>
         
-        <button id="no-btn" ontouchstart="dodgeButton()" onmouseover="dodgeButton()" onclick="dodgeButton()" class="bg-gray-300 text-gray-700 text-base md:text-lg font-bold py-3 px-5 rounded-full shadow-md transition-all duration-200 right-4 w-auto min-w-[80px] whitespace-nowrap select-none">
+        <button id="no-btn" onmouseover="dodgeButton(event)" onclick="dodgeButton(event)" class="bg-gray-300 text-gray-700 text-base md:text-lg font-bold py-3 px-5 rounded-full shadow-md transition-all duration-200 right-4 w-auto min-w-[80px] whitespace-nowrap select-none">
           Non
         </button>
       </div>
@@ -112,17 +108,14 @@
     </div>
 
     <script>
-      // --- 1. CONFIGURATION ET VARIABLES ---
-      // On déclare tout proprement pour éviter les bugs
+      // --- CONFIGURATION ---
       const urlParams = new URLSearchParams(window.location.search);
       const targetPhone = urlParams.get('phone'); 
       let targetName = urlParams.get('name');
       
-      // Fallback
       if (!targetName) targetName = "toi";
-      const finalPhone = targetPhone ? targetPhone : "221777305494"; // Ton numéro par défaut
+      const finalPhone = targetPhone ? targetPhone : "221777305494";
 
-      // Sélection des éléments DOM
       const introCard = document.getElementById("intro-card");
       const introText = document.getElementById("intro-text");
       const questionCard = document.getElementById("question-card");
@@ -134,11 +127,9 @@
       const popSound = document.getElementById("pop-sound");
       const yaySound = document.getElementById("yay-sound");
 
-      // Initialisation du texte
       introText.innerText = `Coucou ${targetName}... ❤️`;
       whatsappLink.href = `https://wa.me/${finalPhone}?text=${encodeURIComponent("OUI ! Je veux être ta Valentine ! 💖🥰")}`;
 
-      // Variables logiques
       let step = 0;
       let dodgeCount = 0;
       let yesScale = 1;
@@ -155,47 +146,34 @@
         "Allez...", "Mauvais bouton !", "Essaie l'autre 👉", "Jamais !", "T'es têtue hein ?"
       ];
 
-      // --- 2. FONCTIONS AUDIO SÉCURISÉES ---
       function safePlay(sound) {
         try {
           sound.currentTime = 0;
           sound.volume = 0.4;
-          sound.play().catch(e => console.log("Audio bloqué (normal sur mobile sans clic):", e));
-        } catch (e) {
-          console.error("Erreur audio", e);
-        }
+          sound.play().catch(e => console.log("Audio bloqué"));
+        } catch (e) {}
       }
 
-      // --- 3. NAVIGATION (Correction Bug "Rien ne se passe") ---
       function nextStep() {
-        // On essaie de jouer le son, mais si ça rate, on continue quand même !
         if(step === 0) safePlay(popSound);
-
         introText.classList.add("fade-out");
-
         setTimeout(() => {
           if (step < messages.length) {
             introText.innerText = messages[step];
             introText.classList.remove("fade-out");
             introText.classList.add("fade-in");
-            step++; // On incrémente APRÈS avoir affiché le message
+            step++; 
           } else {
-            // Fin de l'intro -> Question
             introCard.classList.add("hidden");
             questionCard.classList.remove("hidden");
             questionCard.classList.add("fade-in");
-            
-            // Position initiale absolue du bouton NON
             noBtn.style.position = "absolute";
             noBtn.style.right = "10%";
-            
-            // Lancer l'écriture
             typeWriter("Veux-tu être ma Valentine ?", 0);
           }
-        }, 600); // Temps de la transition fade-out
+        }, 600);
       }
 
-      // Effet Machine à écrire
       function typeWriter(text, i) {
         if (i < text.length) {
           typewriterText.innerHTML += text.charAt(i);
@@ -205,57 +183,57 @@
         }
       }
 
-      // --- 4. LOGIQUE BOUTON NON (RALENTI) ---
-      function dodgeButton() {
+      // --- LOGIQUE CORRIGÉE POUR LE BOUTON ---
+      function dodgeButton(event) {
+        // Si c'est un survol (mouseover) ET qu'on a fait moins de 5 essais, 
+        // ON NE FAIT RIEN. On laisse le bouton tranquille.
+        if (event && event.type === 'mouseover' && dodgeCount < 5) {
+            return; 
+        }
+
+        // Sinon (si c'est un clic OU si on est à plus de 5 essais), on bouge !
         safePlay(popSound);
         dodgeCount++;
 
-        // 1. Changer le texte aléatoirement
         noBtn.innerText = noTexts[Math.floor(Math.random() * noTexts.length)];
         
-        // 2. Grossir le bouton OUI
         yesScale += 0.15;
         yesBtn.style.transform = `scale(${yesScale})`;
 
-        // 3. Calculer les limites de l'écran
-        // On laisse une marge de 20px pour ne pas coller aux bords
-        const maxX = window.innerWidth - noBtn.offsetWidth - 30;
-        const maxY = window.innerHeight - noBtn.offsetHeight - 30;
+        // Limites de l'écran
+        const maxX = window.innerWidth - noBtn.offsetWidth - 40;
+        const maxY = window.innerHeight - noBtn.offsetHeight - 40;
 
         let newX, newY;
 
-        // MODE "FACILE" (5 premiers essais) : Reste proche
+        // MODE 1 (Moins de 5 essais) : On reste proche pour qu'elle puisse cliquer
         if (dodgeCount <= 5) {
             const currentRect = noBtn.getBoundingClientRect();
-            const moveRange = 200; // Rayon de déplacement
-            
-            const offsetX = (Math.random() - 0.5) * moveRange * 2;
-            const offsetY = (Math.random() - 0.5) * moveRange * 2;
+            // On le bouge un peu (150px) mais pas à l'autre bout de l'écran
+            const offsetX = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 100 + 50);
+            const offsetY = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 100 + 50);
 
+            // On vérifie de ne pas sortir de l'écran
             newX = Math.max(20, Math.min(maxX, currentRect.left + offsetX));
             newY = Math.max(20, Math.min(maxY, currentRect.top + offsetY));
         } 
-        // MODE "DIFFICILE" : Partout sur l'écran
+        // MODE 2 (Après 5 essais) : Téléportation partout
         else {
             newX = Math.max(20, Math.random() * maxX);
             newY = Math.max(20, Math.random() * maxY);
         }
 
-        // Appliquer le mouvement (La CSS transition: 0.5s fera le reste)
         noBtn.style.position = "fixed"; 
         noBtn.style.left = newX + "px";
         noBtn.style.top = newY + "px";
       }
 
-      // --- 5. SUCCÈS ---
       function acceptProposal() {
         safePlay(yaySound);
         questionCard.classList.add("hidden");
         noBtn.classList.add("hidden"); 
         successCard.classList.remove("hidden");
-        
         launchConfetti();
-        // Relancer des confettis régulièrement
         setInterval(launchConfetti, 400);
       }
 
@@ -265,17 +243,14 @@
         }
       }
 
-      // --- 6. CŒURS FLOTTANTS ---
       function createFloatingHeart() {
         const h = document.createElement("div"); 
         h.classList.add("floating-heart");
         const s = ["❤️", "💖", "💕", "🌸", "🧚🏿‍♀️"];
         h.innerHTML = s[Math.floor(Math.random() * s.length)];
-        
         h.style.left = Math.random() * 100 + "vw";
         h.style.fontSize = Math.random() * 25 + 15 + "px";
         h.style.animationDuration = Math.random() * 10 + 15 + "s";
-        
         document.getElementById("hearts-container").appendChild(h);
         setTimeout(() => h.remove(), 25000);
       }
